@@ -36,8 +36,4 @@ void AcionamentoMotor(const int MotorPin,  const int NoisePin){
         noTone(NoisePin);
         digitalWrite(MotorPin, HIGH);
     }
-    else if(state == HIGH){
-        noTone(NoisePin);
-        digitalWrite(MotorPin, LOW);
-    }
 }
