@@ -5,7 +5,7 @@ void inicializar(const int RTDPin, const int MotorPin, const int NoisePin){
     pinMode(NoisePin, OUTPUT);
     pinMode(MotorPin, OUTPUT);
 
-    noTone(NoisePin);
+    digitalWrite(NoisePin, LOW);
     digitalWrite(MotorPin, LOW);
     int state = HIGH;
 }
@@ -31,9 +31,10 @@ int MudarEstado(int state){
 
 void AcionamentoMotor(int state, const int MotorPin,  const int NoisePin){
     if(state == LOW){
-        tone(NoisePin, 440, 3000);
+        digitalWrite(NoisePin, HIGH);
         delay(3000);
-        noTone(NoisePin);
+        digitalWrite(NoisePin, LOW);
+        delay(300);
         digitalWrite(MotorPin, HIGH);
     }
 }
