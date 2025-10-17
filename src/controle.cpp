@@ -10,7 +10,7 @@ void inicializar(const int RTDPin, const int MotorPin, const int NoisePin){
     int state = HIGH;
 }
 
-int debounce(int state){
+int debounce(int state, const int RTDPin){
     int stateNamoral = digitalRead(RTDPin);
 
     if(state != stateNamoral){
@@ -29,7 +29,7 @@ int MudarEstado(int state){
     }
 }
 
-void AcionamentoMotor(const int MotorPin,  const int NoisePin){
+void AcionamentoMotor(int state, const int MotorPin,  const int NoisePin){
     if(state == LOW){
         tone(NoisePin, 440, 3000);
         delay(3000);
