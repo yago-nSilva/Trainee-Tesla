@@ -14,7 +14,7 @@ bool SensorMPU::initializeSensor(){
 
     // inicialização do sensor
     if (!mpu.begin()) {
-    Serial.println("Faalha ao encontrar chip MPU6050");
+        Serial.println("Falha ao encontrar chip MPU6050");
         while (1) {
         delay(10);
         }
@@ -22,39 +22,61 @@ bool SensorMPU::initializeSensor(){
 
    // Range de medição em +- 2G 
     mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
+    mpu.setFilterBandwidth(MPU6050_BAND_10_HZ); // Recomendado para reduzir ruído
 
     // Calibração do acelerômetro
 
-    while (!isSensorCalibrated()){
-        sensorCalibration();
+    offsetCalibration();
+
+}
+
+void SensorMPU::offsetCalibration(){    // Determina qual o offset após fazer a média móvel
+    
+    enum Axis {
+        xAxis = 0,
+        yAxis = 1,
+        zAxis = 2
+    };
+
+    const int nSamples = 100; // valor "alterável"
+    float sum[3] = {0,0,0};
+    float average[3] = {0,0,0};
+    
+    // lógica de "calibração automática"
+
+    for(int i = 0; i < nSamples; i++){
+
+        getRawAcceleration();
+
+        sum[xAxis] += raw_acceleration.accx;
+        sum[yAxis] += raw_acceleration.accy;
+        sum[zAxis] += raw_acceleration.accz;
+
+        getRawAcceleration();
+
+        delay(1); // teoricamente isso serve para não sobrecarregar a CPU
     }
 
-    ////// existe mais algo para fazer?
+    for (int i = 0; i < 3; i++){
+        average[i] = sum[i] / nSamples;
+    }
+
+    acc_offset.accx = average[xAxis];
+    acc_offset.accy = average[yAxis];
+    acc_offset.accz = average[zAxis] - 9.78;
+
 }
 
-bool SensorMPU::isSensorCalibrated(){
-
-    const float zero_tolerance = 0.05;
-
-    if(std::abs(raw_acceleration.accx) > zero_tolerance)
-        return false;
-    if(std::abs(raw_acceleration.accy) > zero_tolerance)
-        return false;
-    if(std::abs(raw_acceleration.accz) > zero_tolerance)
-        return false;
+void SensorMPU::getRawAcceleration(){
     
-        return true;
+    sensors_event_t raw_acc_measure; 
+
+    mpu.getEvent(&raw_acc_measure, nullptr, nullptr);
+
+    raw_acceleration.accx = raw_acc_measure.acceleration.x;
+    raw_acceleration.accy = raw_acc_measure.acceleration.y;
+    raw_acceleration.accz = raw_acc_measure.acceleration.z;
+
 }
 
-bool SensorMPU::sensorCalibration(){
-    
-    getRawAcceleration();
-    // criar lógica de "calibração automática"
-}
-
-Acceleration SensorMPU::getRawAcceleration(){
-    
-    Acceleration raw_acceleration;
-
-    raw
-}
+// void SensorMPU::getFilteredAcc(){}
