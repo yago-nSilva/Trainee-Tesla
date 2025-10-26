@@ -1,40 +1,64 @@
-#include <Arduino.h>
+const int RTDPin = 5, ShutdownPin = 0, MotorPin = 22, NoisePin = 33;
+int state = HIGH, shutState = HIGH;
+unsigned long tempoInicial = 0;
+bool buzzerOn = false;
 
-void inicializar(const int RTDPin, const int MotorPin, const int NoisePin){
+void inicializar(){
     pinMode(RTDPin, INPUT_PULLUP);
+    pinMode(ShutdownPin, INPUT_PULLUP);
     pinMode(NoisePin, OUTPUT);
     pinMode(MotorPin, OUTPUT);
 
     digitalWrite(NoisePin, LOW);
     digitalWrite(MotorPin, LOW);
-    int state = HIGH;
 }
 
-int debounce(int state, const int RTDPin){
-    int stateNamoral = digitalRead(RTDPin);
+int debounce(int estado, const int Pin){
+    int stateNamoral = digitalRead(Pin);
 
-    if(state != stateNamoral){
-        delay(75);
-        stateNamoral = digitalRead(RTDPin);
+    if(estado != stateNamoral){
+        if(millis() - tempoInicial >= 50){
+            stateNamoral = digitalRead(Pin);
+            tempoInicial = millis();
+        }
     }
     return stateNamoral;
 }
 
-int MudarEstado(int state){
-    if(debounce(state) == LOW && state == HIGH){
-        state = LOW;
+bool MudarEstado(int &estado, const int Pin){
+    if(debounce(estado, Pin) == LOW && state == HIGH){
+        estado = LOW;
+        return true;
     }
-    else if(debounce(state) == HIGH && state == LOW){
-        state = HIGH;
+    else if(debounce(estado, Pin) == HIGH && state == LOW){
+        estado = HIGH;
+        return false;
     }
 }
 
-void AcionamentoMotor(int state, const int MotorPin,  const int NoisePin){
-    if(state == LOW){
-        digitalWrite(NoisePin, HIGH);
-        delay(3000);
+bool AcionarShutdown(){
+    if(MudarEstado(shutState, ShutdownPin) || verificar_logica_seguranca()){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+void AcionarMotor(){
+    if(AcionarShutdown()){
+        digitalWrite(MotorPin, LOW);
         digitalWrite(NoisePin, LOW);
-        delay(300);
-        digitalWrite(MotorPin, HIGH);
+        buzzerOn = false;
+    }
+    else{
+        if(MudarEstado(state, RTDPin)){
+            digitalWrite(NoisePin, HIGH);
+            buzzerOn = true;
+        }
+        if(buzzerOn && millis() - tempoInicial >= 3000){
+            digitalWrite(NoisePin, LOW);
+            digitalWrite(MotorPin, HIGH);
+        }
     }
 }
