@@ -1,4 +1,4 @@
-void inicializar(const int RTDPin, const int ShutdownPin, const int MotorPin, const int NoisePin);
+void inicializar();
 
 void debounce(int estado, const int Pin);
 
