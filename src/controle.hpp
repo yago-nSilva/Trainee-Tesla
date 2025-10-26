@@ -1,7 +1,9 @@
-void inicializar(const int RTDPin, const int MotorPin, const int NoisePin);
+void inicializar(const int RTDPin, const int ShutdownPin, const int MotorPin, const int NoisePin);
 
-void debounce(int state, const int RTDPin);
+void debounce(int estado, const int Pin);
 
-void MudarEstado(int state);
+void MudarEstado(int &estado, const int Pin);
 
-void AcionamentoMotor(int state, const int MotorPin,  const int NoisePin);
+void AcionarShutdown();
+
+void AcionarMotor();
