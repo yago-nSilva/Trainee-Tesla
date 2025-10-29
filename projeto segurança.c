@@ -4,9 +4,10 @@
 
 bool sistema_em_erro = false; 
 
+const int SHUTDOWN_PIN = 15
 const int LED_R_PIN = 18;    
 const int LED_G_PIN = 19;    
-const int LED_B_PIN = 17;    
+const int LED_B_PIN = 21;    
 const int VOLTAGE_PIN = 35; 
 
 const int ON = LOW;
@@ -21,6 +22,12 @@ const float TENSAO_MIN = 6.0;
 const float TENSAO_MIN_FALHA = 1.0; 
 
 Adafruit_MPU6050 mpu; 
+
+void acionar_shutdown(){
+    sistema_em_erro = true;
+    digitalWrite(SHUTDOWN_PIN, HIGH);
+    Serial.println("SHUTDOWN ACIONADO!");
+}
 
 void set_led_rgb(int R, int G, int B) {
     digitalWrite(LED_R_PIN, R);
@@ -121,3 +128,4 @@ void loop() {
     }
     delay(500);
 }
+
