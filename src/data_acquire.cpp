@@ -17,11 +17,8 @@ bool SensorMPU::initializeSensor(){
     if (!mpu.begin()) {
 
         Serial.println("Falha ao encontrar chip MPU6050");
-        while (1) {
-
-            delay(10);
-            return false;
-        }
+        delay(10);
+        return false;
     }
 
     mpu.setAccelerometerRange(MPU6050_RANGE_2_G);   // Range de medição em +- 2G 
@@ -43,6 +40,7 @@ void SensorMPU::offsetCalibration(){    // Determina qual o offset após fazer a
     };
 
     const int nSamples = 100; // valor de teste (pode ser alterado)
+                              // 100 samples em 0.1s
     float sum[3] = {0,0,0};
     float average[3] = {0,0,0};
     
@@ -81,6 +79,14 @@ void SensorMPU::getRawAcceleration(){
     raw_acceleration.accy = raw_acc_measure.acceleration.y;
     raw_acceleration.accz = raw_acc_measure.acceleration.z;
 
+    Serial.print("Aceleração no eixo x:");
+    Serial.println(raw_acceleration.accx);
+
+    Serial.print("Aceleração no eixo y:");
+    Serial.println(raw_acceleration.accy);
+
+    Serial.print("Aceleração no eixo z:");
+    Serial.println(raw_acceleration.accz);
 }
 
 float SensorMPU::getFilteredAcc(){
@@ -99,13 +105,16 @@ float SensorMPU::getFilteredAcc(){
 
     filtered_acceleration.accx = filtered_acceleration.accx / nSamples;
 
+    Serial.print("Aceleração filtrada:");
+    Serial.println(filtered_acceleration.accx);
+
     return filtered_acceleration.accx;
 
 }
 
 // Classe dataProcessing
 
-DataProcessing::DataProcessing(SensorMPU &sensor_aux)
+DataProcessing::DataProcessing(SensorMPU& sensor_aux)
     : _sensor(sensor_aux),
       instant_speed(0),
       total_distance(0),
@@ -114,14 +123,15 @@ DataProcessing::DataProcessing(SensorMPU &sensor_aux)
 
 float DataProcessing::getInstantSpeed(){
 
-    // falta armazenar e passar isso pra telemetria
+    Serial.print("Distância total:");
+    Serial.println(total_distance);
     return instant_speed;
 }
 
-void DataProcessing::updateSpeed(){
+void DataProcessing::updateKinematics(){
 
     unsigned long current_time = millis();
-    const int ZERO_TOLERANCE = 0.05;
+    const float ZERO_TOLERANCE = 0.05;
 
     if (last_reading_time == 0){
 
@@ -130,28 +140,26 @@ void DataProcessing::updateSpeed(){
     }
 
     float acceleration = _sensor.getFilteredAcc();
-    unsigned long delta_time = (current_time - last_reading_time) / 1000; // ms --> s
+    float delta_time = (current_time - last_reading_time) / 1000.0; // ms --> s
 
-    instant_speed += acceleration*delta_time;
+    if (std::abs(acceleration) < ZERO_TOLERANCE){
+        
+        instant_speed = 0;
+    }
+
+    else {
+        total_distance += instant_speed*delta_time;
+    
+        instant_speed += acceleration*delta_time;
+    }
 
     last_reading_time = current_time;
-    // resolver problema pra velocidade quando a aceleração está caindo
-    // tentar com alguma comparação com o valor de aceleração anterior 
-    // atual < anterior --> carrinho desacelerando
-    // calcular a velocidade para ese caso 
-    // isso é chamado de drift --> como lidar? 
 }
 
-unsigned long DataProcessing::timeAccIsZero(){
-
-    float zero_acceleration_check;
-
-    const int ZERO_TOLERANCE = 0.05;
-
-    zero_acceleration_check = _sensor.getFilteredAcc();
-
-    if (std::abs(zero_acceleration_check) > ZERO_TOLERANCE)
-        return millis();
-
-    else return 0;
+float DataProcessing::getTotalDistance(){
+    
+    Serial.print("Distância total:");
+    Serial.println(total_distance);
+    return total_distance;
 }
+

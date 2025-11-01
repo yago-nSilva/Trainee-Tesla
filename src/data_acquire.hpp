@@ -11,6 +11,7 @@
         float accx;
         float accy;
         float accz;
+
     };
 
     // classe responsável pela interação com o hardware MPU
@@ -41,10 +42,8 @@
             
             unsigned long last_reading_time;
 
-            unsigned long timeAccIsZero();
-
         public:
-            DataProcessing(SensorMPU &sensor_aux):_sensor(sensor_aux){}
+            DataProcessing(SensorMPU& sensor_aux);
 
             float getInstantSpeed();
             void updateSpeed();
