@@ -46,9 +46,9 @@
             DataProcessing(SensorMPU& sensor_aux);
 
             float getInstantSpeed();
-            void updateSpeed();
-
             float getTotalDistance();
+            
+            void updateKinematics();
 
     };
 

@@ -12,7 +12,7 @@ SensorMPU::SensorMPU()  // Construtor
 
 // Definição das funções da classe
 bool SensorMPU::initializeSensor(){
-
+    
     // inicialização do sensor
     if (!mpu.begin()) {
 
@@ -162,4 +162,3 @@ float DataProcessing::getTotalDistance(){
     Serial.println(total_distance);
     return total_distance;
 }
-
